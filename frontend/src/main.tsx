@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 //import App from '/var/www/student-votes/frontend/App'
 import App from '../App' // Ensure this path is correct
+import { BrowserRouter } from 'react-router-dom';
 import './index.css'
 
 
