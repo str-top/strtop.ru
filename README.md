@@ -1,1 +1,2 @@
 # strtop.ru
+hi, peoples!
