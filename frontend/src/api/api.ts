@@ -23,7 +23,34 @@ export interface ApiError extends Error {
 }
 
 // Environment
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Get API URL from environment or use default
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
+
+// Helper function to handle fetch with credentials
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const response = await fetch(`${API_URL}${url}`, {
+    ...options,
+    credentials: 'include', // Include credentials (cookies, HTTP authentication)
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const error = new Error(response.statusText) as ApiError;
+    error.status = response.status;
+    try {
+      const data = await response.json();
+      error.message = data.message || response.statusText;
+    } catch (e) {
+      error.message = response.statusText;
+    }
+    throw error;
+  }
+
+  return response.json();
+};
 
 // Helper function to handle responses
 const handleResponse = async (response: Response) => {
@@ -46,27 +73,22 @@ export const api = {
     voteCode: string;
     resultsCode: string;
   }> => {
-    const response = await fetch(`${API_URL}/votes`, {
+    return fetchWithAuth('/api/votes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    return handleResponse(response);
   },
   
   getVoteProjects: async (code: string): Promise<Project[]> => {
-    const response = await fetch(`${API_URL}/votes/${code}`);
-    const data = await handleResponse(response);
+    const data = await fetchWithAuth(`/api/votes/${code}`);
     return data.projects;
   },
   
   submitVote: async (code: string, userProject: string, ranking: string[]): Promise<void> => {
-    const response = await fetch(`${API_URL}/votes/${code}/vote`, {
+    await fetchWithAuth(`/api/votes/${code}/vote`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userProject, ranking })
     });
-    await handleResponse(response);
   },
   
   getVoteResults: async (code: string): Promise<Array<{
@@ -74,7 +96,6 @@ export const api = {
     votes: number;
     averageRank: number;
   }>> => {
-    const response = await fetch(`${API_URL}/results/${code}`);
-    return handleResponse(response);
+    return fetchWithAuth(`/api/results/${code}`);
   }
 };
