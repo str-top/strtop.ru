@@ -96,7 +96,7 @@ export default function CreateVotePage() {
     <div className="create-vote-container">
       <div className="create-vote-header">
         <h1>Создание голосования</h1>
-        <p className="subtitle">Добавьте проекты для голосования</p>
+        <p className="subtitle">Добавьте проекты для голосования asdfasdfasd</p>
       </div>
 
       {error && <div className="error-message">{error}</div>}
