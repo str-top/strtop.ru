@@ -24,7 +24,7 @@ export interface ApiError extends Error {
 
 // Environment
 // In development, requests will be proxied to the backend
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, ''); // Remove trailing slashes
 
 // Helper function to handle fetch with credentials
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {

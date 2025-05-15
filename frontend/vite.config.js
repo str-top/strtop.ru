@@ -4,6 +4,9 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || '/api')
+  },
   build: {
     outDir: '../dist',  // Ensure this points to the correct directory
     emptyOutDir: true,  // Clears the directory before building
