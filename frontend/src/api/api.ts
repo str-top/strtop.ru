@@ -23,8 +23,8 @@ export interface ApiError extends Error {
 }
 
 // Environment
-// Get API URL from environment or use default
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
+// In development, requests will be proxied to the backend
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to handle fetch with credentials
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {

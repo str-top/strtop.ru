@@ -5,20 +5,15 @@ const cors = require('cors');
 
 const app = express();
 
-// Configure CORS with specific options
-const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+// Enable CORS for all routes
+app.use(cors({
+  origin: true, // Allow all origins in development
   credentials: true,
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
-};
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-app.use(cors(corsOptions));
 app.use(bodyParser.json());
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
 
 // Подключение к MongoDB
 mongoose.connect('mongodb://localhost:27017/student_votes', {
