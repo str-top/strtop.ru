@@ -14,11 +14,14 @@ export default defineConfig({
     }
   },
   server: {
+    // Increase server body size limit
+    bodySizeLimit: '50mb',
     proxy: {
       '^/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
+        timeout: 30000, // 30 seconds
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           // Increase payload size limit for proxy
@@ -27,6 +30,7 @@ export default defineConfig({
               const bodyData = JSON.stringify(req.body);
               proxyReq.setHeader('Content-Type', 'application/json');
               proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+              proxyReq.setHeader('Connection', 'keep-alive');
               proxyReq.write(bodyData);
             }
           });

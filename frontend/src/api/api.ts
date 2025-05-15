@@ -30,19 +30,25 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   // Stringify the body if it's an object and Content-Type is application/json
   let body = options.body;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers as Record<string, string>,
+  };
+
   if (body && typeof body === 'object' && !(body instanceof FormData)) {
     body = JSON.stringify(body);
+  }
+  
+  // Set Content-Length for string bodies
+  if (typeof body === 'string') {
+    headers['Content-Length'] = new TextEncoder().encode(body).length.toString();
   }
 
   const response = await fetch(`${API_URL}${url}`, {
     ...options,
     body,
     credentials: 'include', // Include credentials (cookies, HTTP authentication)
-    headers: {
-      'Content-Type': 'application/json',
-      ...(body && typeof body === 'string' ? { 'Content-Length': new TextEncoder().encode(body).length.toString() } : {}),
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
