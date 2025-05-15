@@ -12,7 +12,7 @@ export function DragDropList({ items, onReorder }: {
     e.dataTransfer.setData('text/html', (e.target as HTMLElement).innerHTML);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
@@ -37,7 +37,7 @@ export function DragDropList({ items, onReorder }: {
           className={`draggable-item ${draggedItem === index ? 'dragging' : ''}`}
           draggable
           onDragStart={(e) => handleDragStart(e, index)}
-          onDragOver={(e) => handleDragOver(e, index)}
+          onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, index)}
         >
           <img src={item.icon} alt={item.name} />

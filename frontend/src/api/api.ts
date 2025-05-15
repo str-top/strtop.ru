@@ -60,22 +60,6 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   return response.json();
 };
 
-// Helper function to handle responses
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const error: ApiError = new Error(response.statusText);
-    error.status = response.status;
-    try {
-      const data = await response.json();
-      error.message = data.message || response.statusText;
-    } catch (e) {
-      error.message = response.statusText;
-    }
-    throw error;
-  }
-  return response.json();
-};
-
 export const api = {
   createVote: async (data: { projects: Array<{ name: string; icon: string }> }): Promise<{
     voteCode: string;
