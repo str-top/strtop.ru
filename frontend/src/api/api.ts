@@ -40,7 +40,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     credentials: 'include', // Include credentials (cookies, HTTP authentication)
     headers: {
       'Content-Type': 'application/json',
-      ...(body && typeof body === 'string' ? { 'Content-Length': Buffer.byteLength(body).toString() } : {}),
+      ...(body && typeof body === 'string' ? { 'Content-Length': new TextEncoder().encode(body).length.toString() } : {}),
       ...options.headers,
     },
   });
