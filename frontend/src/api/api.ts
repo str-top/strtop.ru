@@ -28,11 +28,19 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to handle fetch with credentials
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  // Stringify the body if it's an object and Content-Type is application/json
+  let body = options.body;
+  if (body && typeof body === 'object' && !(body instanceof FormData)) {
+    body = JSON.stringify(body);
+  }
+
   const response = await fetch(`${API_URL}${url}`, {
     ...options,
+    body,
     credentials: 'include', // Include credentials (cookies, HTTP authentication)
     headers: {
       'Content-Type': 'application/json',
+      ...(body && typeof body === 'string' ? { 'Content-Length': Buffer.byteLength(body).toString() } : {}),
       ...options.headers,
     },
   });

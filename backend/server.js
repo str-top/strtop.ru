@@ -13,7 +13,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(bodyParser.json());
+// Increase payload size limit to 30MB (default is 100kb)
+app.use(bodyParser.json({ limit: '30mb' }));
+app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 
 // Подключение к MongoDB
 mongoose.connect('mongodb://localhost:27017/student_votes', {
