@@ -5,6 +5,11 @@ export interface Project {
   icon: string;
 }
 
+export interface UploadResponse {
+  url: string;
+  filename: string;
+}
+
 export interface VoteSession {
   voteCode: string;
   resultsCode: string;
@@ -28,10 +33,10 @@ const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, ''); // Rem
 
 // Helper function to handle fetch with credentials
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  // Stringify the body if it's an object and Content-Type is application/json
+  // Only set Content-Type to application/json if body is not FormData
   let body = options.body;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(body && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
     ...options.headers as Record<string, string>,
   };
 
@@ -67,6 +72,26 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 };
 
 export const api = {
+  // Upload image function
+  uploadImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetchWithAuth('/upload', {
+      method: 'POST',
+      body: formData,
+      // Remove Content-Type header to let browser set it automatically for multipart/form-data
+      headers: {
+        'Content-Type': undefined
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
   createVote: async (data: { projects: Array<{ name: string; icon: string }> }): Promise<{
     voteCode: string;
     resultsCode: string;
@@ -80,12 +105,12 @@ export const api = {
   },
   
   getVoteProjects: async (code: string): Promise<Project[]> => {
-    const data = await fetchWithAuth(`/api/votes/${code}`);
+    const data = await fetchWithAuth(`/votes/${code}`);
     return data.projects;
   },
   
   submitVote: async (code: string, userProject: string, ranking: string[]): Promise<void> => {
-    await fetchWithAuth(`/api/votes/${code}/vote`, {
+    await fetchWithAuth(`/votes/${code}/vote`, {
       method: 'POST',
       body: JSON.stringify({ userProject, ranking })
     });
@@ -96,6 +121,6 @@ export const api = {
     votes: number;
     averageRank: number;
   }>> => {
-    return fetchWithAuth(`/api/results/${code}`);
+    return fetchWithAuth(`/results/${code}`);
   }
 };
