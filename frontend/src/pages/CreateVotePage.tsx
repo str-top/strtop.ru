@@ -9,16 +9,27 @@ import './CreateVotePage.css';
 
 interface Project {
   name: string;
-  icon: string | File;
+  icon: File;
+  previewUrl: string;
 }
 
 export default function CreateVotePage() {
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [newProject, setNewProject] = useState<Project>({ name: '', icon: '' });
+  const [newProject, setNewProject] = useState<Project>({ name: '', icon: null, previewUrl: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const cleanupPreviewUrls = useCallback(() => {
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    setPreviewUrls([]);
+  }, [previewUrls]);
+
+  React.useEffect(() => {
+    return cleanupPreviewUrls;
+  }, [cleanupPreviewUrls]);
 
   const publishVote = useCallback(async () => {
     if (projects.length < 2) {
@@ -69,10 +80,12 @@ export default function CreateVotePage() {
     }
 
     setProjects(prev => [...prev, { ...newProject }]);
-    setNewProject({ name: '', icon: '' });
+    setNewProject({ name: '', icon: null, previewUrl: '' });
     setShowModal(false);
     setError(null);
   }, [newProject]);
+
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,11 +103,16 @@ export default function CreateVotePage() {
       return;
     }
 
+    // Create a preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewUrls(prev => [...prev, previewUrl]);
     setNewProject(prev => ({
       ...prev,
-      icon: file
+      icon: file,
+      previewUrl
     }));
     setError(null);
+  }, [setPreviewUrls]);
   }, []);
 
   return (
