@@ -94,7 +94,7 @@ export const api = {
     const formData = new FormData();
     files.forEach(file => formData.append('images', file));
 
-    const response = await fetchWithAuth('/upload/batch', {
+    const response = await fetchWithAuth('/api/upload/batch', {
       method: 'POST',
       body: formData,
       // Remove Content-Type header to let browser set it automatically for multipart/form-data
