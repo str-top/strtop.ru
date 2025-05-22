@@ -142,7 +142,14 @@ export const api = {
       });
     }
 
-    const body = JSON.stringify({ projects: projectsWithUrls });
+    // Create a new array of projects with only the required fields
+    const voteProjects = projectsWithUrls.map(project => ({
+      name: project.name,
+      icon: project.imageUrl || project.icon, // Use imageUrl if available, otherwise use icon
+      imageUrl: project.imageUrl
+    }));
+
+    const body = JSON.stringify({ projects: voteProjects });
     console.log('Request body size (bytes):', new TextEncoder().encode(body).length);
     return fetchWithAuth('/votes', {
       method: 'POST',

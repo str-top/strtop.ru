@@ -108,6 +108,10 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 
 app.post('/api/votes', async (req, res) => {
   try {
+    // Log the size of the incoming request body
+    const bodyString = JSON.stringify(req.body);
+    console.log('Vote request body size:', Buffer.byteLength(bodyString, 'utf8'), 'bytes');
+    
     const { projects } = req.body;
     
     // Validate that all projects have URLs
