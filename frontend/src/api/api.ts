@@ -73,7 +73,7 @@ export const api = {
   }> => {
     const body = JSON.stringify(data);
     console.log('Request body size (bytes):', new TextEncoder().encode(body).length);
-    return fetchWithAuth('/api/votes', {
+    return fetchWithAuth('/votes', {
       method: 'POST',
       body
     });
