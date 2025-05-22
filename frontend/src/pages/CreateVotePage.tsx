@@ -85,8 +85,6 @@ export default function CreateVotePage() {
     setError(null);
   }, [newProject]);
 
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -113,7 +111,6 @@ export default function CreateVotePage() {
     }));
     setError(null);
   }, [setPreviewUrls]);
-  }, []);
 
   return (
     <div className="create-vote-container">
@@ -129,7 +126,7 @@ export default function CreateVotePage() {
           <div key={`${project.name}-${index}`} className="project-card">
             <div className="project-image-container">
               <img 
-                src={project.icon} 
+                src={project.previewUrl || project.icon} 
                 alt={project.name} 
                 className="project-image"
                 onError={(e) => {
@@ -204,27 +201,33 @@ export default function CreateVotePage() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="file-input"
+                  style={{ display: 'none' }}
+                  id="fileInput"
                 />
-              </label>
-              {newProject.icon && (
-                <div className="image-preview">
-                  <img 
-                    src={newProject.icon} 
-                    alt="Предпросмотр" 
-                    className="preview-image"
-                  />
+                <div 
+                  className="upload-button"
+                  onClick={() => document.getElementById('fileInput')?.click()}
+                >
+                  {newProject.previewUrl ? (
+                    <img 
+                      src={newProject.previewUrl} 
+                      alt="Preview" 
+                      className="preview-image"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder-image.png';
+                      }}
+                    />
+                  ) : (
+                    <span className="upload-icon">+</span>
+                  )}
                 </div>
-              )}
+              </label>
             </div>
 
-            <div className="modal-actions">
+            <div className="modal-buttons">
               <button 
                 className="secondary-button"
-                onClick={() => {
-                  setNewProject({ name: '', icon: '' });
-                  setShowModal(false);
-                }}
+                onClick={() => setShowModal(false)}
               >
                 Отмена
               </button>
@@ -233,7 +236,7 @@ export default function CreateVotePage() {
                 onClick={addProject}
                 disabled={!newProject.name.trim() || !newProject.icon}
               >
-                Добавить проект
+                Добавить
               </button>
             </div>
           </div>
