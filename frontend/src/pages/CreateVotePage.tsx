@@ -9,7 +9,7 @@ import './CreateVotePage.css';
 
 interface Project {
   name: string;
-  icon: string;
+  icon: string | File;
 }
 
 export default function CreateVotePage() {
@@ -30,7 +30,18 @@ export default function CreateVotePage() {
     setError(null);
 
     try {
-      const { voteCode, resultsCode } = await api.createVote({ projects });
+      // First upload all images
+      const files = projects.map(p => p.icon as File);
+      const uploadResponses = await api.uploadImages(files);
+      
+      // Create projects with uploaded URLs
+      const projectsWithUrls = projects.map((project, index) => ({
+        name: project.name,
+        icon: uploadResponses[index].url,
+        imageUrl: uploadResponses[index].url
+      }));
+
+      const { voteCode, resultsCode } = await api.createVote({ projects: projectsWithUrls });
       navigate('/publish', { 
         state: { 
           voteCode, 
@@ -79,17 +90,11 @@ export default function CreateVotePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setNewProject(prev => ({
-          ...prev,
-          icon: event.target?.result as string
-        }));
-        setError(null);
-      }
-    };
-    reader.readAsDataURL(file);
+    setNewProject(prev => ({
+      ...prev,
+      icon: file
+    }));
+    setError(null);
   }, []);
 
   return (
