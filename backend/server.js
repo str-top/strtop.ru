@@ -56,7 +56,8 @@ const VoteSession = mongoose.model('VoteSession', {
   projects: [{
     id: String,
     name: String,
-    icon: String
+    icon: String, // This will store the URL of the uploaded image
+    imageUrl: String // Optional field to store the URL of the uploaded image
   }],
   votes: [{
     userId: String,
@@ -87,27 +88,34 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 });
 
 app.post('/api/votes', async (req, res) => {
-  const { projects } = req.body;
-  const voteCode = Math.floor(10000 + Math.random() * 90000).toString();
-  const resultsCode = Math.floor(10000 + Math.random() * 90000).toString();
-  
-  const projectsWithIds = projects.map(project => ({
-    ...project,
-    id: Math.random().toString(36).substr(2, 9)
-  }));
+  try {
+    const { projects } = req.body;
+    const voteCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const resultsCode = Math.floor(10000 + Math.random() * 90000).toString();
+    
+    const projectsWithIds = projects.map(project => ({
+      ...project,
+      id: Math.random().toString(36).substr(2, 9),
+      imageUrl: project.imageUrl // Store the image URL if provided
+    }));
 
-  const session = new VoteSession({
+  const voteSession = new VoteSession({
     voteCode,
     resultsCode,
-    projects: projectsWithIds
+    projects: projectsWithIds,
+    votes: []
   });
 
-  await session.save();
+  await voteSession.save();
   
   res.json({
     voteCode,
     resultsCode
   });
+  } catch (error) {
+    console.error('Error creating vote:', error);
+    res.status(500).json({ error: 'Failed to create vote session' });
+  }
 });
 
 app.get('/api/votes/:code', async (req, res) => {

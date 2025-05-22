@@ -92,11 +92,24 @@ export const api = {
 
     return response.json();
   },
-  createVote: async (data: { projects: Array<{ name: string; icon: string }> }): Promise<{
+  createVote: async (data: { projects: Array<{ name: string; icon: File | string }> }): Promise<{
     voteCode: string;
     resultsCode: string;
   }> => {
-    const body = JSON.stringify(data);
+    const projectsWithUrls = await Promise.all(data.projects.map(async (project) => {
+      // If the icon is a File, upload it first
+      if (project.icon instanceof File) {
+        const uploadResponse = await api.uploadImage(project.icon);
+        return {
+          name: project.name,
+          icon: uploadResponse.url,
+          imageUrl: uploadResponse.url // Store the URL for the backend
+        };
+      }
+      return project;
+    }));
+
+    const body = JSON.stringify({ projects: projectsWithUrls });
     console.log('Request body size (bytes):', new TextEncoder().encode(body).length);
     return fetchWithAuth('/votes', {
       method: 'POST',
