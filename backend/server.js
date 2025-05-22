@@ -68,7 +68,26 @@ const VoteSession = mongoose.model('VoteSession', {
 });
 
 // API
-// Upload endpoint
+// Batch upload endpoint
+app.post('/api/upload/batch', upload.array('images', 10), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    const responses = req.files.map(file => ({
+      url: `/uploads/${file.filename}`,
+      filename: file.filename
+    }));
+    
+    res.json(responses);
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// Upload endpoint (keep for single file uploads)
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -90,13 +109,18 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 app.post('/api/votes', async (req, res) => {
   try {
     const { projects } = req.body;
+    
+    // Validate that all projects have URLs
+    if (!projects.every(project => project.imageUrl)) {
+      return res.status(400).json({ error: 'All projects must have image URLs' });
+    }
+
     const voteCode = Math.floor(10000 + Math.random() * 90000).toString();
     const resultsCode = Math.floor(10000 + Math.random() * 90000).toString();
     
     const projectsWithIds = projects.map(project => ({
       ...project,
-      id: Math.random().toString(36).substr(2, 9),
-      imageUrl: project.imageUrl // Store the image URL if provided
+      id: Math.random().toString(36).substr(2, 9)
     }));
 
   const voteSession = new VoteSession({

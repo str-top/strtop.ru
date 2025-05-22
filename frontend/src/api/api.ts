@@ -3,6 +3,7 @@ export interface Project {
   id: string;
   name: string;
   icon: string;
+  imageUrl?: string;
 }
 
 export interface UploadResponse {
@@ -86,28 +87,60 @@ export const api = {
       }
     });
 
+    return response.json();
+  },
+
+  uploadImages: async (files: File[]): Promise<UploadResponse[]> => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('images', file));
+
+    const response = await fetchWithAuth('/upload/batch', {
+      method: 'POST',
+      body: formData,
+      // Remove Content-Type header to let browser set it automatically for multipart/form-data
+      headers: {
+        'Content-Type': undefined
+      }
+    });
+
+    return response.json();
+
     if (!response.ok) {
       throw new Error(`Upload failed: ${response.status}`);
     }
 
     return response.json();
   },
-  createVote: async (data: { projects: Array<{ name: string; icon: File | string }> }): Promise<{
+  createVote: async (data: { projects: Array<{ name: string; icon: File | string; imageUrl?: string }> }): Promise<{
     voteCode: string;
     resultsCode: string;
   }> => {
-    const projectsWithUrls = await Promise.all(data.projects.map(async (project) => {
-      // If the icon is a File, upload it first
+    // Separate files from URLs
+    const files: File[] = [];
+    const projectsWithUrls = data.projects.map(project => {
       if (project.icon instanceof File) {
-        const uploadResponse = await api.uploadImage(project.icon);
+        files.push(project.icon);
         return {
           name: project.name,
-          icon: uploadResponse.url,
-          imageUrl: uploadResponse.url // Store the URL for the backend
+          icon: '', // Will be filled after upload
+          imageUrl: '' // Will be filled after upload
         };
       }
       return project;
-    }));
+    });
+
+    // Upload all files in one batch
+    if (files.length > 0) {
+      const uploadResponses = await api.uploadImages(files);
+      
+      // Match uploaded files back to their projects
+      projectsWithUrls.forEach((project, index) => {
+        if (project.icon === '') {
+          project.icon = uploadResponses[index].url;
+          project.imageUrl = uploadResponses[index].url;
+        }
+      });
+    }
 
     const body = JSON.stringify({ projects: projectsWithUrls });
     console.log('Request body size (bytes):', new TextEncoder().encode(body).length);
