@@ -67,7 +67,7 @@ const VoteSession = mongoose.model('VoteSession', {
 });
 
 // Upload endpoint
-app.post('/api/upload', upload.single('image'), async (req, res) => {
+app.post('/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -86,7 +86,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 });
 
 // API
-app.post('/api/votes', upload.array('images', 10), async (req, res) => {
+app.post('/votes', upload.array('images', 10), async (req, res) => {
   const { projects } = req.body;
   const voteCode = Math.floor(10000 + Math.random() * 90000).toString();
   const resultsCode = Math.floor(10000 + Math.random() * 90000).toString();
@@ -110,7 +110,7 @@ app.post('/api/votes', upload.array('images', 10), async (req, res) => {
   });
 });
 
-app.get('/api/votes/:code', async (req, res) => {
+app.get('/votes/:code', async (req, res) => {
   const session = await VoteSession.findOne({ voteCode: req.params.code });
   if (!session) return res.status(404).send('Голосование не найдено');
   
@@ -119,7 +119,7 @@ app.get('/api/votes/:code', async (req, res) => {
   });
 });
 
-app.post('/api/votes/:code/vote', async (req, res) => {
+app.post('/votes/:code/vote', async (req, res) => {
   const { userProject, ranking } = req.body;
   
   const session = await VoteSession.findOne({ voteCode: req.params.code });
@@ -138,7 +138,7 @@ app.post('/api/votes/:code/vote', async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/results/:code', async (req, res) => {
+app.get('/results/:code', async (req, res) => {
   const session = await VoteSession.findOne({ resultsCode: req.params.code });
   if (!session) return res.status(404).send('Результаты не найдены');
   

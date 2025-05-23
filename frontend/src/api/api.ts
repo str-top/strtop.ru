@@ -24,7 +24,7 @@ export interface ApiError extends Error {
 
 // Environment
 // In development, requests will be proxied to the backend
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, ''); // Remove trailing slashes
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to handle fetch with credentials
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
@@ -83,7 +83,7 @@ export const api = {
       formData.append('images', file, file.name);
     });
 
-    const response = await fetchWithAuth('/upload', {
+    const response = await fetchWithAuth(`${API_URL}/upload`, {
       method: 'POST',
       body: formData,
     });
@@ -96,19 +96,19 @@ export const api = {
   }> => {
     const body = JSON.stringify(data);
     console.log('Request body size (bytes):', new TextEncoder().encode(body).length);
-    return fetchWithAuth('/votes', {
+    return fetchWithAuth(`${API_URL}/votes`, {
       method: 'POST',
       body
     });
   },
   
   getVoteProjects: async (code: string): Promise<Project[]> => {
-    const data = await fetchWithAuth(`/api/votes/${code}`);
+    const data = await fetchWithAuth(`${API_URL}/votes/${code}`);
     return data.projects;
   },
   
   submitVote: async (code: string, userProject: string, ranking: string[]): Promise<void> => {
-    await fetchWithAuth(`/api/votes/${code}/vote`, {
+    await fetchWithAuth(`${API_URL}/votes/${code}/vote`, {
       method: 'POST',
       body: JSON.stringify({ userProject, ranking })
     });
@@ -119,6 +119,6 @@ export const api = {
     votes: number;
     averageRank: number;
   }>> => {
-    return fetchWithAuth(`/api/results/${code}`);
+    return fetchWithAuth(`${API_URL}/results/${code}`);
   }
 };
