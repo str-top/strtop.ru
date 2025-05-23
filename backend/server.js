@@ -11,7 +11,7 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+})); 
 
 // Increase payload size limit to 50MB (default is 100kb)
 app.use(bodyParser.json({ limit: '50mb' }));
