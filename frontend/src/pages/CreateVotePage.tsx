@@ -63,7 +63,7 @@ export default function CreateVotePage() {
     setError(null);
   }, [newProject]);
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -79,17 +79,17 @@ export default function CreateVotePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setNewProject(prev => ({
-          ...prev,
-          icon: event.target?.result as string
-        }));
-        setError(null);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const response = await api.uploadImages([file]);
+      setNewProject(prev => ({
+        ...prev,
+        icon: response[0]
+      }));
+      setError(null);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Не удалось загрузить изображение. Пожалуйста, попробуйте снова.');
+    }
   }, []);
 
   return (

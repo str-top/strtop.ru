@@ -67,6 +67,19 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 };
 
 export const api = {
+  uploadImages: async (files: File[]): Promise<string[]> => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file, file.name);
+    });
+
+    const response = await fetchWithAuth('/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    return response;
+  },
   createVote: async (data: { projects: Array<{ name: string; icon: string }> }): Promise<{
     voteCode: string;
     resultsCode: string;
