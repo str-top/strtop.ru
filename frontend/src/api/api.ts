@@ -28,12 +28,22 @@ const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, ''); // Rem
 
 // Helper function to handle fetch with credentials
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  // Stringify the body if it's an object and Content-Type is application/json
-  let body = options.body;
+  // Don't set Content-Type if it's FormData, let browser handle it
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...options.headers as Record<string, string>,
   };
+
+  let body = options.body;
+  
+  // Only set Content-Type for non-FormData bodies
+  if (options.body && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+    
+    // Stringify the body if it's an object
+    if (typeof options.body === 'object') {
+      body = JSON.stringify(options.body);
+    }
+  }
 
   if (body && typeof body === 'object' && !(body instanceof FormData)) {
     body = JSON.stringify(body);
