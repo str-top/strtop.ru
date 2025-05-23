@@ -9,13 +9,12 @@ import './CreateVotePage.css';
 
 interface Project {
   name: string;
-  icon: string;
 }
 
 export default function CreateVotePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [newProject, setNewProject] = useState<Project>({ name: '', icon: '' });
+  const [newProject, setNewProject] = useState<Project>({ name: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -46,51 +45,33 @@ export default function CreateVotePage() {
     }
   }, [projects, navigate]);
 
+  const handleImageUpload = useCallback(() => {
+    setError('Функция загрузки изображений временно недоступна');
+  }, []);
+
+  const handleAddProject = useCallback(() => {
+    if (!newProject.name.trim()) {
+      setError('Пожалуйста, введите название проекта');
+      return;
+    }
+
+    setProjects(prev => [...prev, { ...newProject, icon: '/placeholder-image.png' }]);
+    setNewProject({ name: '' });
+    setShowModal(false);
+    setError(null);
+  }, [newProject]);
+
   const addProject = useCallback(() => {
     if (!newProject.name.trim()) {
       setError('Пожалуйста, введите название проекта');
       return;
     }
-    
-    if (!newProject.icon) {
-      setError('Пожалуйста, загрузите иконку для проекта');
-      return;
-    }
 
     setProjects(prev => [...prev, { ...newProject }]);
-    setNewProject({ name: '', icon: '' });
+    setNewProject({ name: '' });
     setShowModal(false);
     setError(null);
   }, [newProject]);
-
-  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Пожалуйста, загрузите изображение');
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Размер файла не должен превышать 2МБ');
-      return;
-    }
-
-    try {
-      const response = await api.uploadImages([file]);
-      setNewProject(prev => ({
-        ...prev,
-        icon: response[0]
-      }));
-      setError(null);
-    } catch (error) {
-      console.error('Upload error:', error);
-      setError('Не удалось загрузить изображение. Пожалуйста, попробуйте снова.');
-    }
-  }, []);
 
   return (
     <div className="create-vote-container">
@@ -98,6 +79,75 @@ export default function CreateVotePage() {
         <h1>Создание голосования</h1>
         <p className="subtitle">Добавьте проекты для голосования</p>
       </div>
+
+      <div className="projects-list">
+        {projects.map((project, index) => (
+          <div key={index} className="project-item">
+            <span className="project-name">{project.name}</span>
+          </div>
+        ))}
+      </div>
+
+      <button 
+        className="primary-button"
+        onClick={() => setShowModal(true)}
+        disabled={isSubmitting}
+      >
+        Добавить проект
+      </button>
+
+      {projects.length >= 2 && (
+        <button 
+          className="primary-button"
+          onClick={publishVote}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Публикация...' : 'Опубликовать голосование'}
+        </button>
+      )}
+
+      {error && <div className="error-message">{error}</div>}
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Добавить проект</h2>
+            <div className="modal-content">
+              <div className="form-group">
+                <label htmlFor="project-name">Название проекта</label>
+                <input
+                  type="text"
+                  id="project-name"
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({ name: e.target.value })}
+                  placeholder="Введите название проекта"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button 
+                  className="secondary-button"
+                  onClick={() => {
+                    setShowModal(false);
+                    setError(null);
+                  }}
+                >
+                  Отмена
+                </button>
+                <button 
+                  className="primary-button"
+                  onClick={handleAddProject}
+                  disabled={isSubmitting}
+                >
+                  Добавить
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
       {error && <div className="error-message">{error}</div>}
 
@@ -172,27 +222,6 @@ export default function CreateVotePage() {
                 }))}
                 className="form-input"
               />
-            </div>
-
-            <div className="form-group">
-              <label className="file-upload-label">
-                {newProject.icon ? 'Изменить иконку' : 'Загрузить иконку'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="file-input"
-                />
-              </label>
-              {newProject.icon && (
-                <div className="image-preview">
-                  <img 
-                    src={newProject.icon} 
-                    alt="Предпросмотр" 
-                    className="preview-image"
-                  />
-                </div>
-              )}
             </div>
 
             <div className="modal-actions">

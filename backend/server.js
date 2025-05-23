@@ -15,29 +15,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 })); 
 
-// Configure multer for file uploads
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-      cb(null, Date.now() + path.extname(file.originalname));
-    }
-  }),
-  limits: {
-    fileSize: 50 * 1024 * 1024 // 50MB limit
-  }
-});
 
-// Create uploads directory if it doesn't exist
-const fs = require('fs');
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
-
-// Serve uploaded files
-app.use('/uploads', express.static('uploads'));
 
 // Increase payload size limit to 50MB (default is 100kb)
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -55,8 +33,7 @@ const VoteSession = mongoose.model('VoteSession', {
   resultsCode: String,
   projects: [{
     id: String,
-    name: String,
-    icon: String
+    name: String
   }],
   votes: [{
     userId: String,
@@ -66,27 +43,10 @@ const VoteSession = mongoose.model('VoteSession', {
   createdAt: { type: Date, default: Date.now }
 });
 
-// Upload endpoint
-app.post('/upload', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
 
-    const response = {
-      url: `/uploads/${req.file.filename}`,
-      filename: req.file.filename
-    };
-    
-    res.json(response);
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Upload failed' });
-  }
-});
 
 // API
-app.post('/votes', upload.array('images', 10), async (req, res) => {
+app.post('/votes', async (req, res) => {
   const { projects } = req.body;
   const voteCode = Math.floor(10000 + Math.random() * 90000).toString();
   const resultsCode = Math.floor(10000 + Math.random() * 90000).toString();
